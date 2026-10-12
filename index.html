@@ -117,4 +117,34 @@ function changeChannel(name){
 render(matches);
 </script>
 </body>
-</html>
+</html><!-- REPLACE YOUR VIDEO PLAYER SECTION WITH THIS -->
+<div class="hero">
+  <div id="liveScores" style="background:#111;padding:15px;border-radius:12px">
+    <h3>🔴 LIVE NOW - Real Scores</h3>
+    <div id="scores">Loading real scores...</div>
+  </div>
+</div>
+
+<script>
+async function loadRealScores(){
+  // Free API - English Premier League Live Scores
+  try{
+    const res = await fetch('https://www.thesportsdb.com/api/v1/json/3/livescore.php?l=4328&s=Soccer');
+    const data = await res.json();
+    let html = '';
+    if(data.events){
+      data.events.forEach(m=>{
+        html += `<div style="padding:10px;border-bottom:1px solid #222">
+        <b>${m.strHomeTeam} ${m.intHomeScore} - ${m.intAwayScore} ${m.strAwayTeam}</b><br>
+        <span style="color:#00ff88">${m.strStatus} • ${m.strLeague}</span>
+        </div>`;
+      });
+    } else { html = 'No live match now. Check back during match time.'; }
+    document.getElementById('scores').innerHTML = html;
+  }catch(e){
+    document.getElementById('scores').innerHTML = 'No internet or no live match now.';
+  }
+}
+loadRealScores();
+setInterval(loadRealScores, 30000); // refresh every 30s
+</script>
