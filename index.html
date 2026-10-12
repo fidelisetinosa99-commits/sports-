@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SPORTLIVE - Watch Live Sports</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; font-family:Arial, sans-serif; }
+body { background:#0a0a0a; color:#fff; }
+header { background:#111; padding:15px; display:flex; justify-content:space-between; align-items:center; position:sticky; top:0; z-index:100; }
+.logo { font-size:22px; font-weight:bold; color:#00ff88; }
+.logo span { color:#fff; }
+.search { background:#222; border:none; padding:8px 12px; border-radius:20px; color:#fff; width:150px; }
+.categories { display:flex; gap:10px; overflow-x:auto; padding:12px; background:#111; }
+.cat { background:#222; padding:8px 16px; border-radius:20px; white-space:nowrap; cursor:pointer; border:1px solid #333; }
+.cat.active { background:#00ff88; color:#000; font-weight:bold; }
+.hero { padding:15px; }
+.video-player { width:100%; height:220px; background:#000; border-radius:12px; overflow:hidden; position:relative; border:2px solid #00ff88; }
+.video-player video { width:100%; height:100%; object-fit:cover; }
+.live-badge { position:absolute; top:10px; left:10px; background:red; padding:4px 10px; border-radius:5px; font-size:12px; font-weight:bold; }
+.match-title { margin-top:10px; font-size:18px; font-weight:bold; }
+.score { color:#00ff88; }
+.grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; padding:15px; }
+.card { background:#1a1a1a; border-radius:12px; overflow:hidden; cursor:pointer; border:1px solid #222; }
+.card img { width:100%; height:110px; object-fit:cover; }
+.card-body { padding:10px; }
+.card-body h3 { font-size:14px; margin-bottom:5px; }
+.card-body p { font-size:12px; color:#aaa; }
+.channel-row { display:flex; gap:10px; overflow-x:auto; padding:0 15px 15px; }
+.channel { min-width:90px; background:#1a1a1a; border-radius:10px; padding:10px; text-align:center; }
+.channel img { width:50px; height:50px; border-radius:50%; object-fit:cover; }
+button { background:#00ff88; color:#000; border:none; padding:10px 18px; border-radius:20px; font-weight:bold; width:100%; margin-top:10px; cursor:pointer; }
+.bottom-nav { position:fixed; bottom:0; left:0; right:0; background:#111; display:flex; justify-content:space-around; padding:12px; border-top:1px solid #222; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">SPORT<span>LIVE</span></div>
+  <input class="search" id="searchInput" placeholder="Search match..." onkeyup="searchMatches()">
+</header>
+
+<div class="categories" id="cats">
+  <div class="cat active" onclick="filterCat('All', this)">All</div>
+  <div class="cat" onclick="filterCat('Football', this)">⚽ Football</div>
+  <div class="cat" onclick="filterCat('Basketball', this)">🏀 Basketball</div>
+  <div class="cat" onclick="filterCat('Tennis', this)">🎾 Tennis</div>
+  <div class="cat" onclick="filterCat('Boxing', this)">🥊 Boxing</div>
+  <div class="cat" onclick="filterCat('F1', this)">🏎️ F1</div>
+</div>
+
+<div class="hero">
+  <div class="video-player">
+    <span class="live-badge">● LIVE</span>
+    <video id="mainVideo" controls poster="https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=800" src="https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8"></video>
+  </div>
+  <div class="match-title" id="nowPlaying">LOR 0 - 0 REA • Premier League <span class="score">LIVE 67'</span></div>
+  <button onclick="playFeatured()">▶ Watch Now</button>
+</div>
+
+<h3 style="padding:0 15px">Live Channels</h3>
+<div class="channel-row">
+  <div class="channel" onclick="changeChannel('SuperSport')"><img src="https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=100"><p>SuperSport</p></div>
+  <div class="channel" onclick="changeChannel('ESPN')"><img src="https://images.unsplash.com/photo-1522778119026-d647f0596c20?w=100"><p>ESPN</p></div>
+  <div class="channel" onclick="changeChannel('Sky Sports')"><img src="https://images.unsplash.com/photo-1579952363873-27f3bade9f55?w=100"><p>Sky Sports</p></div>
+  <div class="channel" onclick="changeChannel('beIN Sports')"><img src="https://images.unsplash.com/photo-1489944440615-453fc2b6a9a9?w=100"><p>beIN</p></div>
+  <div class="channel" onclick="changeChannel('DSTV')"><img src="https://images.unsplash.com/photo-1518604666860-9ed391f76460?w=100"><p>DSTV</p></div>
+</div>
+
+<h3 style="padding:0 15px">Trending Live Matches</h3>
+<div class="grid" id="matchesGrid"></div>
+
+<div style="height:70px"></div>
+<div class="bottom-nav">
+  <span>🏠 Home</span><span>🔴 Live</span><span>📅 Schedule</span><span>👤 Profile</span>
+</div>
+
+<script>
+const matches = [
+  { id:1, title:"Man City vs Arsenal", cat:"Football", viewers:"2.3M watching", img:"https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=400", stream:"https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8" },
+  { id:2, title:"Real Madrid vs Barcelona", cat:"Football", viewers:"3.1M watching", img:"https://images.unsplash.com/photo-1579952363873-27f3bade9f55?w=400", stream:"https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8" },
+  { id:3, title:"Lakers vs Celtics", cat:"Basketball", viewers:"890K watching", img:"https://images.unsplash.com/photo-1546519638-68e109498ffc?w=400", stream:"https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8" },
+  { id:4, title:"Nadal vs Djokovic", cat:"Tennis", viewers:"450K watching", img:"https://images.unsplash.com/photo-1554068865-24cecd4e34b8?w=400", stream:"https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8" },
+  { id:5, title:"Joshua vs Fury", cat:"Boxing", viewers:"1.2M watching", img:"https://images.unsplash.com/photo-1549719386-74dfcbf7dbed?w=400", stream:"https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8" },
+  { id:6, title:"F1 Grand Prix Live", cat:"F1", viewers:"670K watching", img:"https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=400", stream:"https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8" },
+];
+
+function render(list){
+  document.getElementById('matchesGrid').innerHTML = list.map(m => `
+    <div class="card" onclick="playMatch(${m.id})">
+      <img src="${m.img}">
+      <div class="card-body"><h3>${m.title}</h3><p>${m.cat} • ${m.viewers}</p><span style="color:red;font-size:11px">● LIVE</span></div>
+    </div>
+  `).join('');
+}
+function playMatch(id){
+  const m = matches.find(x=>x.id===id);
+  document.getElementById('mainVideo').src = m.stream;
+  document.getElementById('nowPlaying').innerHTML = m.title + ' • LIVE';
+  document.getElementById('mainVideo').play();
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+function playFeatured(){ document.getElementById('mainVideo').play(); }
+function filterCat(cat, el){
+  document.querySelectorAll('.cat').forEach(c=>c.classList.remove('active'));
+  el.classList.add('active');
+  render(cat==='All' ? matches : matches.filter(m=>m.cat===cat));
+}
+function searchMatches(){
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  render(matches.filter(m=>m.title.toLowerCase().includes(q)));
+}
+function changeChannel(name){
+  document.getElementById('nowPlaying').innerHTML = name + ' Channel • LIVE';
+  alert('Now playing: ' + name);
+}
+render(matches);
+</script>
+</body>
+</html>
